@@ -96,62 +96,63 @@ From the summary above, we find 2,304 rows had NA entries for steps.
 
 To fill these data holes, I used the mean # of steps/5-min interval (agg_int) data frame
 
-Created a new column (wd_we) and converted the date to a weekday or weekend factor and saved it to a copy of the original data, called data_imp:
+Created a new column (wd_we) and converted the date to a weekday or weekend factor and saved it to a copy of the original data, called data2:
 
 
 ```r
-#data_imp$day <- weekdays(as.Date(as.character(data_imp$date))) #tried this 1st; no workie
-data_imp$wd_we <- as.factor(ifelse(!weekdays(as.Date(data_imp$date)) %in% c("Saturday", "Sunday"), "weekday","weekend"))
+#data2$day <- weekdays(as.Date(as.character(data2$date))) #tried this 1st; no workie
+data2 <- data
+data2$wd_we <- as.factor(ifelse(!weekdays(as.Date(data2$date)) %in% c("Saturday", "Sunday"), "weekday","weekend"))
 ```
 
 then I merged this new data frame with the agg_int data and filled all the NAs with the mean # of steps for that 5-min interval
 
 
 ```r
-df_merge <- merge(data_imp, agg_int, by.x="interval", by.y="interval")
-df_merge$steps.x[is.na(df_merge$steps.x)] <- df_merge$steps.y
+df_merge <- merge(data2, agg_int, by.x="interval", by.y="interval")
+# change column names here to avoid confusion later
+# steps.x = # of steps, steps.y = mean # of steps/5-min interval
+names(df_merge)[2] <- "steps"
+names(df_merge)[5] <- "mean"
+df_merge$steps[is.na(df_merge$steps)] <- df_merge$mean[is.na(df_merge$steps)]
 ```
 
-```
-## Warning in df_merge$steps.x[is.na(df_merge$steps.x)] <- df_merge$steps.y:
-## number of items to replace is not a multiple of replacement length
-```
-
-plotting a new histogram with the aggregated imputed data:
+plotting a new histogram with the original data and imputed data overlaid together. The original data is red; the imputed data is bright green; where they match is brown
 
 ```r
-agg_imp <- aggregate(steps.x ~ date, data=df_merge, FUN=sum)
-hist(agg_imp$steps.x, breaks=10, col="Red", main="", xlab="# steps/day")
+agg_date_imp <- aggregate(steps ~ date, data=df_merge, FUN=sum)
+hist(agg_date$steps, breaks=10, ylim=c(0,25), col="red", xlab="# steps/day", main="Comparison of original and imputed data sets")
+hist(agg_date_imp$steps, add=T, breaks=10, col=rgb(0, 1, 0, 0.5))
 ```
 
 ![](./PA1_template_files/figure-html/histo2-1.png) 
 
 ```r
-summary(agg_imp)
+summary(agg_date_imp)
 ```
 
 ```
-##          date       steps.x     
+##          date        steps      
 ##  2012-10-01: 1   Min.   :   41  
-##  2012-10-02: 1   1st Qu.: 6778  
-##  2012-10-03: 1   Median :10395  
-##  2012-10-04: 1   Mean   : 9371  
+##  2012-10-02: 1   1st Qu.: 9819  
+##  2012-10-03: 1   Median :10766  
+##  2012-10-04: 1   Mean   :10766  
 ##  2012-10-05: 1   3rd Qu.:12811  
 ##  2012-10-06: 1   Max.   :21194  
 ##  (Other)   :55
 ```
 
-From observations of both the histogram plot and the summary, it appears that imputing the NAs in the original data has lowered the mean and median values significantly.
+From observations of both the composite histogram plot and the summary, it appears that imputing the NAs in the original data has had little if any affect. The mean and median of the imputed data set is nearly the same as the original, but the frequency of the center bin has increased nearly 10 above the original. Surprisingly, all other bins maintain the same frequency for both data sets.
 
 
 ## Are there differences in activity patterns between weekdays and weekends?
-create a panel plot showing a time series for each set of data:
+create a panel plot showing a time series for each set of imputed data:
 
 
 ```r
 library(lattice)
-#xyplot(steps ~ interval | wd_we, data=data_imp, layout=c(2,1), type="l")
-xyplot(steps.x ~ interval | wd_we, data=df_merge, layout=c(2,1), type="l")
+#xyplot(steps ~ interval | wd_we, data=data2, layout=c(2,1), type="l") #not imputed
+xyplot(steps ~ interval | wd_we, data=df_merge, layout=c(2,1), type="l") #imputed
 ```
 
 ![](./PA1_template_files/figure-html/panelplot-1.png) 
@@ -159,7 +160,7 @@ xyplot(steps.x ~ interval | wd_we, data=df_merge, layout=c(2,1), type="l")
 Looking at the panel plots, there are distinct differences between the measurements made during the weekday and those of the weekend. Weekday step activity is significantly higher in the mornings after 5am, where weekend step activity doesn't really begin until after 8-9am.
 
 The data also shows a common burst of activity that begins around 3pm for both data sets.
-Both data sets also appear to have both an equal duration and pause between activity bursts. 
+Both data sets also appear to have both an equal duration and pause between activity bursts throughout the day. 
 
 
 
