@@ -117,10 +117,34 @@ df_merge$steps.x[is.na(df_merge$steps.x)] <- df_merge$steps.y
 ## number of items to replace is not a multiple of replacement length
 ```
 
+plotting a new histogram with the aggregated imputed data:
+
+```r
+agg_imp <- aggregate(steps.x ~ date, data=df_merge, FUN=sum)
+hist(agg_imp$steps.x, breaks=10, col="Red", main="", xlab="# steps/day")
+```
+
+![](./PA1_template_files/figure-html/histo2-1.png) 
+
+```r
+summary(agg_imp)
+```
+
+```
+##          date       steps.x     
+##  2012-10-01: 1   Min.   :   41  
+##  2012-10-02: 1   1st Qu.: 6778  
+##  2012-10-03: 1   Median :10395  
+##  2012-10-04: 1   Mean   : 9371  
+##  2012-10-05: 1   3rd Qu.:12811  
+##  2012-10-06: 1   Max.   :21194  
+##  (Other)   :55
+```
+
+From observations of both the histogram plot and the summary, it appears that imputing the NAs in the original data has lowered the mean and median values significantly.
+
 
 ## Are there differences in activity patterns between weekdays and weekends?
-
-
 create a panel plot showing a time series for each set of data:
 
 
@@ -132,8 +156,10 @@ xyplot(steps.x ~ interval | wd_we, data=df_merge, layout=c(2,1), type="l")
 
 ![](./PA1_template_files/figure-html/panelplot-1.png) 
 
+Looking at the panel plots, there are distinct differences between the measurements made during the weekday and those of the weekend. Weekday step activity is significantly higher in the mornings after 5am, where weekend step activity doesn't really begin until after 8-9am.
 
-Looking at the panel plots, there are distinct differences between the measurements made during the weekday and those of the weekend. Step activity is significantly more in mornings after 5am where on the weekend, step activity doesn't really begin until after 8-9am. The data also shows a common burst of activity that begins around 3pm for both data sets. However, the weekend data shows that step activity maintained for another 2 hrs until 5pm
+The data also shows a common burst of activity that begins around 3pm for both data sets.
+Both data sets also appear to have both an equal duration and pause between activity bursts. 
 
 
 
